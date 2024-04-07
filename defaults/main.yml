@@ -96,14 +96,8 @@ wetty_container_additional_volumes: []
 # A list of extra arguments to pass to the container
 wetty_container_extra_arguments: []
 
-wetty_http_proxy: ''
-wetty_https_proxy: ''
-wetty_no_proxy: ''
-
-wetty_base_url: "https://{{ wetty_hostname + wetty_path_prefix | trim('/') }}"
-wetty_proxy_headers: true
-
-wetty_hide_referer: false
+wetty_ssh_host: '127.0.0.1'
+wetty_ssh_port: 22
 
 # Additional environment variables.
 wetty_environment_variables_additional_variables: ''
