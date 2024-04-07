@@ -9,7 +9,6 @@
     group: "{{ wetty_gid }}"
   with_items:
     - "{{ wetty_base_path }}"
-    - "{{ wetty_data_dir_path }}"
 
 - name: Ensure Wetty support files created
   ansible.builtin.template:

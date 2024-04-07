@@ -16,7 +16,6 @@ ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} create \
 			--rm \
 			--name={{ wetty_identifier }} \
 			--log-driver=none \
-			--user={{ wetty_uid }}:{{ wetty_gid }} \
 			--cap-drop=ALL \
 			--read-only \
 			--network={{ wetty_container_network }} \
@@ -25,7 +24,6 @@ ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} create \
 			{% endif %}
 			--env-file={{ wetty_base_path }}/env \
 			--label-file={{ wetty_base_path }}/labels \
-			--mount type=bind,src={{ wetty_data_dir_path }},dst=/datastore \
 			--tmpfs=/tmp:rw,noexec,nosuid,size=128m \
 			{{ wetty_container_image }}
 

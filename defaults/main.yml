@@ -19,7 +19,6 @@ wetty_hostname: ''
 wetty_path_prefix: /
 
 wetty_base_path: "/{{ wetty_identifier }}"
-wetty_data_dir_path: "{{ wetty_base_path }}/data"
 
 wetty_container_image: "{{ wetty_container_image_registry_prefix }}butlerx/wetty:{{ wetty_container_image_tag }}"
 wetty_container_image_registry_prefix: ghcr.io/
