@@ -9,7 +9,7 @@ wetty_identifier: wetty
 wetty_uid: ''
 wetty_gid: ''
 
-wetty_version: 'latest'
+wetty_version: '2.5'
 
 # The hostname at which wetty is served.
 wetty_hostname: ''
