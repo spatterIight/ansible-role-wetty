@@ -15,7 +15,7 @@
 
 # Project source code URL: https://github.com/butlerx/wetty
 
-wetty_enabled: false
+wetty_enabled: true
 
 wetty_identifier: wetty
 

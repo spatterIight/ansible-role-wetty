@@ -28,11 +28,8 @@ provisioner:
   inventory:
     group_vars:
       all:
-        wetty_enabled: true
-        wetty_hostname: localhost
-        nifi_uid: 1000
-        nifi_gid: 1000
-        wetty_base_path: /wetty
+        wetty_uid: 1000
+        wetty_gid: 1000
         wetty_container_labels_traefik_enabled: false
         wetty_container_http_bind_port: 3000
 
