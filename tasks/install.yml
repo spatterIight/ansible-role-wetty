@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 spatterlight
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 ---
 
 - name: Ensure Wetty paths exist
@@ -7,7 +11,7 @@
     mode: "0750"
     owner: "{{ wetty_uid }}"
     group: "{{ wetty_gid }}"
-  with_items:
+  loop:
     - "{{ wetty_base_path }}"
 
 - name: Ensure Wetty support files created
@@ -16,24 +20,23 @@
     dest: "{{ wetty_base_path }}/{{ item }}"
     owner: "{{ wetty_uid }}"
     group: "{{ wetty_gid }}"
-    mode: 0640
-  with_items:
+    mode: "0640"
+  loop:
     - env
     - labels
 
 - name: Ensure Wetty container image is pulled
   community.docker.docker_image:
     name: "{{ wetty_container_image }}"
-    source: "{{ 'pull' if ansible_version.major > 2 or ansible_version.minor > 7 else omit }}"
-    force_source: "{{ wetty_container_image_force_pull if ansible_version.major > 2 or ansible_version.minor >= 8 else omit }}"
-    force: "{{ omit if ansible_version.major > 2 or ansible_version.minor >= 8 else wetty_container_image_force_pull }}"
+    source: pull
+    force_source: "{{ wetty_container_image_force_pull }}"
   register: result
   retries: "{{ devture_playbook_help_container_retries_count }}"
   delay: "{{ devture_playbook_help_container_retries_delay }}"
   until: result is not failed
 
 - name: Ensure Wetty container network is created
-  community.general.docker_network:
+  community.docker.docker_network:
     name: "{{ wetty_container_network }}"
     driver: bridge
 
@@ -41,4 +44,4 @@
   ansible.builtin.template:
     src: "{{ role_path }}/templates/systemd/wetty.service.j2"
     dest: "{{ devture_systemd_docker_base_systemd_path }}/{{ wetty_identifier }}.service"
-    mode: 0640
+    mode: "0640"

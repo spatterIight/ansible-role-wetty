@@ -1,0 +1,59 @@
+# SPDX-FileCopyrightText: 2026 spatterlight
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+---
+- name: Verify
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Wait for wetty service to become active (up to 60s)
+      ansible.builtin.systemd:
+        name: wetty.service
+      register: wetty_service
+      until: wetty_service.status.ActiveState == 'active'
+      retries: 12
+      delay: 5
+
+    - name: Assert wetty service is active
+      ansible.builtin.assert:
+        that: wetty_service.status.ActiveState == 'active'
+        fail_msg: "wetty.service not active ({{ wetty_service.status.ActiveState }})"
+        success_msg: "wetty.service is active"
+
+    - name: Get wetty container info
+      community.docker.docker_container_info:
+        name: wetty
+      register: wetty_container_info
+
+    - name: Assert wetty container is running
+      ansible.builtin.assert:
+        that: wetty_container_info.container.State.Running
+        fail_msg: "wetty container is not running"
+        success_msg: "wetty container is running"
+
+    - name: Wait for wetty HTTP endpoint to respond (up to 60s)
+      ansible.builtin.uri:
+        url: "http://127.0.0.1:3000/wetty"
+        method: GET
+        validate_certs: false
+        status_code: [200, 301, 302, 404]
+        follow_redirects: none
+      register: wetty_http
+      until: wetty_http.status in [200, 301, 302, 404]
+      retries: 12
+      delay: 5
+
+    - name: Assert wetty HTTP endpoint responds
+      ansible.builtin.assert:
+        that: wetty_http.status in [200, 301, 302, 404]
+        fail_msg: "wetty HTTP did not respond ({{ wetty_http.status | default('no response') }})"
+        success_msg: "wetty HTTP responded with {{ wetty_http.status }}"
+
+    - name: Show service status summary
+      ansible.builtin.debug:
+        msg:
+          - "wetty systemd: {{ wetty_service.status.ActiveState }}"
+          - "wetty container running: {{ wetty_container_info.container.State.Running }}"
+          - "wetty HTTP: {{ wetty_http.status }}"

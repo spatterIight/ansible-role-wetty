@@ -1,14 +1,28 @@
+# SPDX-FileCopyrightText: 2023 Gergely Horváth
+# SPDX-FileCopyrightText: 2023, 2024 Nikita Chernyi
+# SPDX-FileCopyrightText: 2023-2025 MASH project contributors
+# SPDX-FileCopyrightText: 2023-2026 Slavi Pantaleev
+# SPDX-FileCopyrightText: 2024 Julian-Samuel Gebühr
+# SPDX-FileCopyrightText: 2024 Philipp Homann
+# SPDX-FileCopyrightText: 2024 Sergio Durigan Junior
+# SPDX-FileCopyrightText: 2025, 2026 Suguru Hirahara
+# SPDX-FileCopyrightText: 2026 Timofej Luitle
+# SPDX-FileCopyrightText: 2026 spatterlight
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 ---
 
 # Project source code URL: https://github.com/butlerx/wetty
 
-wetty_enabled: false 
+wetty_enabled: false
 
 wetty_identifier: wetty
 
 wetty_uid: ''
 wetty_gid: ''
 
+# renovate: datasource=docker depName=ghcr.io/butlerx/wetty
 wetty_version: '2.5'
 
 # The hostname at which wetty is served.
@@ -54,7 +68,7 @@ wetty_container_labels_traefik_rule: "Host(`{{ wetty_container_labels_traefik_ho
 wetty_container_labels_traefik_priority: 0
 wetty_container_labels_traefik_entrypoints: web-secure
 wetty_container_labels_traefik_tls: "{{ wetty_container_labels_traefik_entrypoints != 'web' }}"
-wetty_container_labels_traefik_tls_certResolver: default
+wetty_container_labels_traefik_tls_certResolver: default # noqa var-naming
 
 # Controls which additional headers to attach to all HTTP requests.
 # To add your own custom request headers, use `wetty_container_labels_traefik_additional_response_headers_custom`

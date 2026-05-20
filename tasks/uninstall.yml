@@ -1,3 +1,9 @@
+# SPDX-FileCopyrightText: 2023 - 2024 Slavi Pantaleev
+# SPDX-FileCopyrightText: 2025 Suguru Hirahara
+# SPDX-FileCopyrightText: 2026 spatterlight
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 ---
 
 - name: Check existence of Wetty systemd service
@@ -5,7 +11,8 @@
     path: "{{ devture_systemd_docker_base_systemd_path }}/{{ wetty_identifier }}.service"
   register: wetty_service_stat
 
-- when: wetty_service_stat.stat.exists | bool
+- name: Ensure Wetty is uninstalled
+  when: wetty_service_stat.stat.exists | bool
   block:
     - name: Ensure Wetty systemd service is stopped
       ansible.builtin.service:
