@@ -29,12 +29,12 @@ provisioner:
     group_vars:
       all:
         wetty_enabled: true
-        wetty_hostname: "localhost"
-        wetty_uid: "0"
-        wetty_gid: "0"
-        wetty_base_path: "/wetty"
+        wetty_hostname: localhost
+        nifi_uid: 1000
+        nifi_gid: 1000
+        wetty_base_path: /wetty
         wetty_container_labels_traefik_enabled: false
-        wetty_container_http_bind_port: "3000"
+        wetty_container_http_bind_port: 3000
 
   env:
     # This is a hack to resolve https://github.com/ansible/molecule/issues/4391
