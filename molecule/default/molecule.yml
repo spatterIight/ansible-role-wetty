@@ -18,6 +18,8 @@ platforms:
     cgroupns_mode: host
     privileged: true
     pre_build_image: true
+    published_ports:
+      - 127.0.0.1:3000:3000
 provisioner:
   name: ansible
   config_options:
@@ -32,14 +34,7 @@ provisioner:
         wetty_gid: "0"
         wetty_base_path: "/wetty"
         wetty_container_labels_traefik_enabled: false
-        wetty_container_http_bind_port: "127.0.0.1:3000"
-
-        devture_systemd_docker_base_systemd_path: /etc/systemd/system
-        devture_systemd_docker_base_systemd_unit_home_path: /root
-        devture_systemd_docker_base_host_command_sh: /bin/sh
-        devture_systemd_docker_base_host_command_docker: /usr/bin/docker
-        devture_playbook_help_container_retries_count: 3
-        devture_playbook_help_container_retries_delay: 10
+        wetty_container_http_bind_port: "3000"
 
   env:
     # This is a hack to resolve https://github.com/ansible/molecule/issues/4391

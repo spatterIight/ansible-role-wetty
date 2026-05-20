@@ -103,11 +103,20 @@ wetty_container_labels_additional_labels: ''
 #   - type: bind
 #     src: /another-path/on/the/host
 #     dst: /read-only
-#     options: readonly
-wetty_container_additional_volumes: []
+#     readonly: true
+wetty_container_additional_volumes: "{{ wetty_container_additional_volumes_auto + wetty_container_additional_volumes_custom }}"
+wetty_container_additional_volumes_auto: []
+wetty_container_additional_volumes_custom: []
 
 # A list of extra arguments to pass to the container
 wetty_container_extra_arguments: []
+
+wetty_container_cap_drop_all: true
+
+wetty_container_read_only: true
+
+wetty_container_memory_limit: ""
+wetty_container_memory_swap_limit: ""
 
 wetty_ssh_host: '127.0.0.1'
 wetty_ssh_port: 22
@@ -120,3 +129,15 @@ wetty_systemd_required_services_list: "{{ wetty_systemd_required_services_list_d
 wetty_systemd_required_services_list_default: ['docker.service']
 wetty_systemd_required_services_list_auto: []
 wetty_systemd_required_services_list_custom: []
+
+# List of systemd services that wetty.service wants (optional/soft dependencies)
+wetty_systemd_wanted_services_list: "{{ (wetty_systemd_wanted_services_list_default + wetty_systemd_wanted_services_list_auto + wetty_systemd_wanted_services_list_custom) | unique }}"
+wetty_systemd_wanted_services_list_default: []
+wetty_systemd_wanted_services_list_auto: []
+wetty_systemd_wanted_services_list_custom: []
+
+wetty_container_stop_grace_time_seconds: "{{ devture_systemd_docker_base_container_stop_grace_time_seconds }}"
+wetty_container_cleanup_timeout_seconds: "{{ devture_systemd_docker_base_container_cleanup_timeout_seconds }}"
+wetty_container_cleanup_retry_delay_seconds: "{{ devture_systemd_docker_base_container_cleanup_retry_delay_seconds }}"
+
+wetty_container_network_deletion_enabled: true
