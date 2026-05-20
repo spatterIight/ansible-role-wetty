@@ -1,23 +1,37 @@
+{#
+SPDX-FileCopyrightText: 2023 Slavi Pantaleev
+SPDX-FileCopyrightText: 2025, 2026 Suguru Hirahara
+SPDX-FileCopyrightText: 2026 spatterlight
+
+SPDX-License-Identifier: AGPL-3.0-or-later
+#}
+
 [Unit]
 Description=Wetty ({{ wetty_identifier }})
 {% for service in wetty_systemd_required_services_list %}
 Requires={{ service }}
 After={{ service }}
 {% endfor %}
+{% for service in wetty_systemd_wanted_services_list %}
+Wants={{ service }}
+{% endfor %}
 DefaultDependencies=no
 
 [Service]
 Type=simple
 Environment="HOME={{ devture_systemd_docker_base_systemd_unit_home_path }}"
-ExecStartPre=-{{ devture_systemd_docker_base_host_command_sh }} -c '{{ devture_systemd_docker_base_host_command_docker }} kill {{ wetty_identifier }} 2>/dev/null'
-ExecStartPre=-{{ devture_systemd_docker_base_host_command_sh }} -c '{{ devture_systemd_docker_base_host_command_docker }} rm {{ wetty_identifier }} 2>/dev/null'
+ExecStartPre={{ devture_systemd_docker_base_host_command_sh }} -c 'i=0; while [ "$i" -lt {{ wetty_container_cleanup_timeout_seconds }} ]; do {{ devture_systemd_docker_base_host_command_docker }} stop -t {{ wetty_container_stop_grace_time_seconds }} {{ wetty_identifier }} >/dev/null 2>&1 || true; {{ devture_systemd_docker_base_host_command_docker }} rm -f {{ wetty_identifier }} >/dev/null 2>&1 || true; if {{ devture_systemd_docker_base_host_command_docker }} container inspect {{ wetty_identifier }} >/dev/null 2>&1; then i=$((i + 1)); sleep {{ wetty_container_cleanup_retry_delay_seconds }}; continue; fi; if {{ devture_systemd_docker_base_host_command_docker }} info >/dev/null 2>&1; then exit 0; fi; echo "Failed to query Docker daemon while cleaning up {{ wetty_identifier }}" >&2; exit 1; done; echo "Failed to remove stale container {{ wetty_identifier }} after {{ wetty_container_cleanup_timeout_seconds }} attempts" >&2; exit 1'
 
 ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} create \
 			--rm \
 			--name={{ wetty_identifier }} \
 			--log-driver=none \
+			{% if wetty_container_cap_drop_all %}
 			--cap-drop=ALL \
+			{% endif %}
+			{% if wetty_container_read_only %}
 			--read-only \
+			{% endif %}
 			--network={{ wetty_container_network }} \
 			{% if wetty_container_http_bind_port != '' %}
 			-p {{ wetty_container_http_bind_port }}:{{ wetty_container_http_port }} \
@@ -25,6 +39,18 @@ ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} create \
 			--env-file={{ wetty_base_path }}/env \
 			--label-file={{ wetty_base_path }}/labels \
 			--tmpfs=/tmp:rw,noexec,nosuid,size=128m \
+			{% if wetty_container_memory_limit != '' %}
+			--memory={{ wetty_container_memory_limit }} \
+			{% endif %}
+			{% if wetty_container_memory_swap_limit != '' %}
+			--memory-swap={{ wetty_container_memory_swap_limit }} \
+			{% endif %}
+			{% for volume in wetty_container_additional_volumes %}
+			--mount type=bind,src={{ volume.src }},dst={{ volume.dst }}{{ (',readonly' if volume.readonly | default(false) else '') }} \
+			{% endfor %}
+			{% if wetty_container_extra_arguments | length > 0 %}
+			{{ wetty_container_extra_arguments | join(' ') }} \
+			{% endif %}
 			{{ wetty_container_image }}
 
 {% for network in wetty_container_additional_networks %}
@@ -33,8 +59,8 @@ ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} network conne
 
 ExecStart={{ devture_systemd_docker_base_host_command_docker }} start --attach {{ wetty_identifier }}
 
-ExecStop=-{{ devture_systemd_docker_base_host_command_sh }} -c '{{ devture_systemd_docker_base_host_command_docker }} kill {{ wetty_identifier }} 2>/dev/null'
-ExecStop=-{{ devture_systemd_docker_base_host_command_sh }} -c '{{ devture_systemd_docker_base_host_command_docker }} rm {{ wetty_identifier }} 2>/dev/null'
+ExecStop=-{{ devture_systemd_docker_base_host_command_sh }} -c '{{ devture_systemd_docker_base_host_command_docker }} stop -t {{ wetty_container_stop_grace_time_seconds }} {{ wetty_identifier }} 2>/dev/null || true'
+ExecStop=-{{ devture_systemd_docker_base_host_command_sh }} -c '{{ devture_systemd_docker_base_host_command_docker }} rm {{ wetty_identifier }} 2>/dev/null || true'
 Restart=always
 RestartSec=30
 SyslogIdentifier={{ wetty_identifier }}

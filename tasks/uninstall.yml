@@ -1,3 +1,9 @@
+# SPDX-FileCopyrightText: 2023 - 2024 Slavi Pantaleev
+# SPDX-FileCopyrightText: 2025 Suguru Hirahara
+# SPDX-FileCopyrightText: 2026 spatterlight
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 ---
 
 - name: Check existence of Wetty systemd service
@@ -5,21 +11,71 @@
     path: "{{ devture_systemd_docker_base_systemd_path }}/{{ wetty_identifier }}.service"
   register: wetty_service_stat
 
-- when: wetty_service_stat.stat.exists | bool
+- name: Ensure Wetty is uninstalled
+  when: wetty_service_stat.stat.exists | bool
   block:
     - name: Ensure Wetty systemd service is stopped
       ansible.builtin.service:
         name: "{{ wetty_identifier }}"
         state: stopped
         enabled: false
-        daemon_reload: true
 
-    - name: Ensure Wetty systemd service does not exists
+    - name: Ensure Wetty systemd service does not exist
       ansible.builtin.file:
         path: "{{ devture_systemd_docker_base_systemd_path }}/{{ wetty_identifier }}.service"
         state: absent
 
-    - name: Ensure Wetty path doesn't exist
-      ansible.builtin.file:
-        path: "{{ wetty_base_path }}"
+- name: Reload systemd daemon
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Ensure Wetty support files do not exist
+  ansible.builtin.file:
+    path: "{{ wetty_base_path }}/{{ item }}"
+    state: absent
+  loop:
+    - env
+    - labels
+
+- name: Ensure Wetty base path does not exist if empty
+  ansible.builtin.command:
+    cmd: "rmdir {{ wetty_base_path }}"
+  register: wetty_base_path_deletion_result
+  changed_when: wetty_base_path_deletion_result.rc == 0
+  failed_when: false
+
+- name: Ensure Wetty container network does not exist
+  when: wetty_container_network_deletion_enabled
+  block:
+    - name: Ensure Wetty container network does not exist via community.docker.docker_network
+      when: devture_systemd_docker_base_container_network_creation_method == 'ansible-module'
+      community.docker.docker_network:
+        name: "{{ wetty_container_network }}"
         state: absent
+      failed_when: false
+
+    - name: Ensure Wetty container network does not exist via ansible.builtin.command
+      when: devture_systemd_docker_base_container_network_creation_method == 'command'
+      ansible.builtin.command:
+        cmd: "{{ devture_systemd_docker_base_host_command_docker }} network rm {{ wetty_container_network }}"
+      register: wetty_network_removal_result
+      changed_when: wetty_container_network in wetty_network_removal_result.stdout
+      failed_when: false
+
+- name: Check existence of Wetty base path
+  ansible.builtin.stat:
+    path: "{{ wetty_base_path }}"
+  register: wetty_base_path_stat
+
+# We just want to notify the user. Deleting data is too destructive.
+- name: Inject the message about the remaining Wetty base path
+  when: wetty_base_path_stat.stat.exists | bool
+  ansible.builtin.set_fact:
+    devture_playbook_runtime_messages_list: |
+      {{
+        devture_playbook_runtime_messages_list | default([])
+        +
+        [
+          "Note: As the local Wetty instance has been removed, some old data remains in `" + wetty_base_path + "`. Feel free to delete it."
+        ]
+      }}

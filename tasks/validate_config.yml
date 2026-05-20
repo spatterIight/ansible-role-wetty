@@ -1,3 +1,12 @@
+# SPDX-FileCopyrightText: 2023 Gergely Horváth
+# SPDX-FileCopyrightText: 2023 Julian-Samuel Gebühr
+# SPDX-FileCopyrightText: 2023 MASH project contributors
+# SPDX-FileCopyrightText: 2023-2025 Slavi Pantaleev
+# SPDX-FileCopyrightText: 2025, 2026 Suguru Hirahara
+# SPDX-FileCopyrightText: 2026 spatterlight
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 ---
 
 - name: Fail if required Wetty settings not defined
@@ -5,19 +14,20 @@
     msg: >-
       You need to define a required configuration setting (`{{ item }}`) for using this role.
   when: "vars[item] == ''"
-  with_items:
+  loop:
     - wetty_hostname
     - wetty_uid
     - wetty_gid
 
-- when: wetty_container_labels_traefik_enabled | bool
+- name: Validate Wetty Traefik settings
+  when: wetty_container_labels_traefik_enabled | bool
   block:
     - name: Fail if required wetty Traefik settings not defined
       ansible.builtin.fail:
         msg: >-
           You need to define a required configuration setting (`{{ item }}`).
       when: "vars[item] == ''"
-      with_items:
+      loop:
         - wetty_container_labels_traefik_hostname
         - wetty_container_labels_traefik_path_prefix
 
